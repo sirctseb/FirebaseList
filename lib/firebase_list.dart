@@ -16,9 +16,11 @@ class FirebaseListEvent {
 
   /// The index where the child was added, removed, or set
   final int index;
-  // TODO firebase native event?
 
-  FirebaseListEvent(this.type, this.key, this.data, this.index);
+  /// The original firebase event that prompted this event
+  final Event event;
+
+  FirebaseListEvent(this.type, this.key, this.data, this.index, this.event);
 
   static final String VALUE_ADDED = 'value_added';
   static final String VALUE_REMOVED = 'value_removed';
@@ -95,7 +97,7 @@ class FirebaseList {
     var data = _parseVal(event.snapshot.key, event.snapshot.val());
     _moveTo(event.snapshot.key, data, event.prevChild);
     _onValueAdded.add(new FirebaseListEvent(FirebaseListEvent.VALUE_ADDED,
-        event.snapshot.key, data, _posByKey(event.snapshot.key)));
+        event.snapshot.key, data, _posByKey(event.snapshot.key), event));
   }
 
   void _serverRemove(Event event) {
@@ -103,8 +105,8 @@ class FirebaseList {
     if (pos != -1) {
       var data = _list[pos];
       _list.removeAt(pos);
-      _onValueRemoved.add(new FirebaseListEvent(
-          FirebaseListEvent.VALUE_REMOVED, event.snapshot.key, data, pos));
+      _onValueRemoved.add(new FirebaseListEvent(FirebaseListEvent.VALUE_REMOVED,
+          event.snapshot.key, data, pos, event));
     }
   }
 
@@ -113,8 +115,8 @@ class FirebaseList {
     if (pos != -1) {
       _list[pos] = _applyToBase(
           _list[pos], _parseVal(event.snapshot.key, event.snapshot.val()));
-      _onValueSet.add(new FirebaseListEvent(
-          FirebaseListEvent.VALUE_SET, event.snapshot.key, _list[pos], pos));
+      _onValueSet.add(new FirebaseListEvent(FirebaseListEvent.VALUE_SET,
+          event.snapshot.key, _list[pos], pos, event));
     }
   }
 
@@ -125,10 +127,10 @@ class FirebaseList {
       var data = _list[oldPos];
       _list.removeAt(oldPos);
       _moveTo(id, data, event.prevChild);
-      _onValueRemoved.add(new FirebaseListEvent(
-          FirebaseListEvent.VALUE_REMOVED, event.snapshot.key, data, oldPos));
+      _onValueRemoved.add(new FirebaseListEvent(FirebaseListEvent.VALUE_REMOVED,
+          event.snapshot.key, data, oldPos, event));
       _onValueAdded.add(new FirebaseListEvent(FirebaseListEvent.VALUE_ADDED,
-          event.snapshot.key, data, _posByKey(event.snapshot.key)));
+          event.snapshot.key, data, _posByKey(event.snapshot.key), event));
     }
   }
 
