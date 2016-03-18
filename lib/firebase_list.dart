@@ -171,7 +171,7 @@ class FirebaseList {
     }
     // TODO js version also add the key to a special place
     // data['$id'] = id;
-    data[r'$key'] = key;
+    data[r'$id'] = key;
     return data;
   }
 
