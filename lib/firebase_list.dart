@@ -208,6 +208,7 @@ class FirebaseList {
       base.clear();
       base.addAll(data);
       base[r'$id'] = id;
+      return base;
     } else {
       return data;
     }
