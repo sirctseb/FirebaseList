@@ -58,28 +58,28 @@ class FirebaseList {
   List get list => new List.unmodifiable(_list);
 
   // TODO we should probably just return the futures from these?
-  void add(data) {
+  Future add(data) {
     var key = firebase.push().key;
     var ref = firebase.child(key);
     // TODO they check that arguments were passed to this method on js side
     // if (arguments.length > 0)
-    ref.set(_parseForJson(data)).catchError(_handleErrors);
+    return ref.set(_parseForJson(data));
   }
 
-  void set(key, data) {
-    firebase.child(key).set(_parseForJson(data)).catchError(_handleErrors);
+  Future set(key, data) {
+    return firebase.child(key).set(_parseForJson(data));
   }
 
-  void update(key, data) {
-    firebase.child(key).update(_parseForJson(data)).catchError(_handleErrors);
+  Future update(key, data) {
+    return firebase.child(key).update(_parseForJson(data));
   }
 
-  void setPriority(key, priority) {
-    firebase.child(key).setPriority(priority);
+  Future setPriority(key, priority) {
+    return firebase.child(key).setPriority(priority);
   }
 
-  void remove(key) {
-    firebase.child(key).remove().catchError(_handleErrors);
+  Future remove(key) {
+    return firebase.child(key).remove();
   }
 
   void off() {
