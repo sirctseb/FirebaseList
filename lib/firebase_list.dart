@@ -3,18 +3,49 @@ library firebase_list;
 import 'dart:async';
 import 'package:firebase/firebase.dart';
 
-/** Create a List-like object that remains synced to a location in a firebase
+class FirebaseListEvent {
+  /// The event type. FirebaseListEvent.VALUE_ADDED,
+  /// FirebaseListEvent.VALUE_REMOVED, or FirebaseListEvent.VALUE_SET
+  final String type;
+
+  /// The key of the firebase location of the child
+  final String key;
+
+  /// The value of the child
+  final Map data;
+
+  /// The index where the child was added, removed, or set
+  final int index;
+  // TODO firebase native event?
+
+  FirebaseListEvent(this.type, this.key, this.data, this.index);
+
+  static final String VALUE_ADDED = 'value_added';
+  static final String VALUE_REMOVED = 'value_removed';
+  static final String VALUE_SET = 'value_set';
+}
+
+/** A List-like object that remains synced to a location in a firebase
  * database.
  */
-
 class FirebaseList {
-
   /// Reference to the [Firebase] location
   final Firebase firebase;
 
   List _list = [];
 
+  // subscription to native firebase events
   List<StreamSubscription> _subs = [];
+
+  // stream controllers for FirebaseListEvents
+  StreamController _onValueAdded = new StreamController.broadcast();
+  StreamController _onValueRemoved = new StreamController.broadcast();
+  StreamController _onValueSet = new StreamController.broadcast();
+
+  /// Event that occurs when a new value is added to the list
+  Stream<FirebaseListEvent> get onValueAdded => _onValueAdded.stream;
+  Stream<FirebaseListEvent> get onValueRemoved => _onValueRemoved.stream;
+  Stream<FirebaseListEvent> get onValueSet => _onValueSet.stream;
 
   FirebaseList(Firebase this.firebase) {
     _initListeners();
@@ -63,14 +94,17 @@ class FirebaseList {
   void _serverAdd(Event event) {
     var data = _parseVal(event.snapshot.key, event.snapshot.val());
     _moveTo(event.snapshot.key, data, event.prevChild);
-    // TODO emit event
+    _onValueAdded.add(new FirebaseListEvent(FirebaseListEvent.VALUE_ADDED,
+        event.snapshot.key, data, _posByKey(event.snapshot.key)));
   }
 
   void _serverRemove(Event event) {
     var pos = _posByKey(event.snapshot.key);
     if (pos != -1) {
+      var data = _list[pos];
       _list.removeAt(pos);
-      // TODO emit event
+      _onValueRemoved.add(new FirebaseListEvent(
+          FirebaseListEvent.VALUE_REMOVED, event.snapshot.key, data, pos));
     }
   }
 
@@ -79,7 +113,8 @@ class FirebaseList {
     if (pos != -1) {
       _list[pos] = _applyToBase(
           _list[pos], _parseVal(event.snapshot.key, event.snapshot.val()));
-      // TODO emit event
+      _onValueSet.add(new FirebaseListEvent(
+          FirebaseListEvent.VALUE_SET, event.snapshot.key, _list[pos], pos));
     }
   }
 
@@ -90,7 +125,10 @@ class FirebaseList {
       var data = _list[oldPos];
       _list.removeAt(oldPos);
       _moveTo(id, data, event.prevChild);
-      // TODO emit event
+      _onValueRemoved.add(new FirebaseListEvent(
+          FirebaseListEvent.VALUE_REMOVED, event.snapshot.key, data, oldPos));
+      _onValueAdded.add(new FirebaseListEvent(FirebaseListEvent.VALUE_ADDED,
+          event.snapshot.key, data, _posByKey(event.snapshot.key)));
     }
   }
 
@@ -120,9 +158,6 @@ class FirebaseList {
     }
     return -1;
   }
-
-  // TODO list interface
-  // TODO event listeners
 
   _parseVal(String key, data) {
     // TODO js version forces data to be a Map in case it is a native type
@@ -180,5 +215,6 @@ class FirebaseList {
     _subs.forEach((sub) {
       sub.cancel();
     });
+    _subs.clear();
   }
 }
