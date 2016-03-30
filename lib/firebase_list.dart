@@ -6,6 +6,7 @@ import 'package:firebase/firebase.dart';
 class FirebaseListEvent {
   /// The event type. FirebaseListEvent.VALUE_ADDED,
   /// FirebaseListEvent.VALUE_REMOVED, or FirebaseListEvent.VALUE_SET
+  // TODO omit because they're separate streams?
   final String type;
 
   /// The key of the firebase location of the child
@@ -53,9 +54,17 @@ class FirebaseList {
     _initListeners();
   }
 
+  /// The length of the list
+  int get length => _list.length;
+
   /// An unmodifiable [List] representation of the list
   // TODO should _parseForJson the elements before returning like $rawData
+  // TODO probably just shouldn't have this
   List get list => new List.unmodifiable(_list);
+
+  Map operator[](int index) {
+    return _list[index];
+  }
 
   // TODO we should probably just return the futures from these?
   Future add(data) {
