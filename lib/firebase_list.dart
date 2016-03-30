@@ -162,15 +162,9 @@ class FirebaseList {
   }
 
   _parseVal(String key, data) {
-    // TODO js version forces data to be a Map in case it is a native type
-    // if (typeof(data) !== 'object' || !data) {
-    //   data = { '.value': data };
-    // }
     if (data is! Map) {
       data = {'.value': data};
     }
-    // TODO js version also add the key to a special place
-    // data['$id'] = id;
     data[r'$id'] = key;
     return data;
   }
@@ -192,18 +186,6 @@ class FirebaseList {
 
   _applyToBase(Map base, Map data) {
     if (base is Map && data is Map) {
-      // js implementation:
-      // var key;
-      // for(key in base) {
-      //   if( key !== '$id' && base.hasOwnProperty(key) && !data.hasOwnProperty(key) ) {
-      //     delete base[key];
-      //   }
-      // }
-      // for(key in data) {
-      //   if( data.hasOwnProperty(key) ) {
-      //     base[key] = data[key];
-      //   }
-      // }
       var id = base[r'$id'];
       base.clear();
       base.addAll(data);
