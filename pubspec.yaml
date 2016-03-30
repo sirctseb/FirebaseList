@@ -8,3 +8,7 @@ environment:
 documentation: http://sirctseb.github.io/FirebaseList
 dependencies:
   firebase: ^0.6.3
+dev_dependencies:
+  test: ^0.12.4
+  logging: ^0.11.2
+  logging_handlers: ^0.8.0
