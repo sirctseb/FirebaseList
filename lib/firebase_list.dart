@@ -108,8 +108,10 @@ class FirebaseList {
     firebase.child(key).setPriority(priority);
   }
 
-  void remove(key) {
-    firebase.child(key).remove();
+  void remove(int index) {
+    if (index >= 0 && index < _list.length) {
+      firebase.child(_list[index][r'$id']).remove();
+    }
   }
 
   void off() {
