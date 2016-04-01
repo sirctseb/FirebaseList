@@ -81,7 +81,12 @@ class FirebaseList {
   // TODO js side allows push without supplying data
   Firebase add(data) {
     var ref = firebase.push();
-    ref.set(_parseForJson(data));
+    if (_list.length != 0) {
+      var priority = _snaps[_list.last[r'$id']].getPriority();
+      ref.setWithPriority(_parseForJson(data), priority + 1);
+    } else {
+      ref.setWithPriority(_parseForJson(data), 0);
+    }
     return ref;
   }
 
