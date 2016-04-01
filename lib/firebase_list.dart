@@ -83,18 +83,15 @@ class FirebaseList {
     return ref;
   }
 
-  void _set(key, data) {
-    if (!_snaps.containsKey(key)) {
-      throw new Exception('No child at $key');
-    } else {
-      var priority = _snaps[key].getPriority();
-      firebase.child(key).setWithPriority(_parseForJson(data), priority);
-    }
-  }
-
   void set(int index, newValue) {
     if (index >= 0 && index < _list.length) {
-      _set(_list[index][r'$id'], newValue);
+      var key = _list[index][r'$id'];
+      if (!_snaps.containsKey(key)) {
+        throw new Exception('No child at $key');
+      } else {
+        var priority = _snaps[key].getPriority();
+        firebase.child(key).setWithPriority(_parseForJson(newValue), priority);
+      }
     }
   }
 
