@@ -65,7 +65,7 @@ class FirebaseList {
   // TODO probably just shouldn't have this
   List get list => new List.unmodifiable(_list);
 
-  Map operator[](int index) {
+  Map operator [](int index) {
     return _list[index];
   }
 
@@ -99,18 +99,35 @@ class FirebaseList {
   }
 
   void _initListeners() {
-    _onReady = firebase.once('value');
     _subs.add(firebase.onChildAdded.listen(_serverAdd));
     _subs.add(firebase.onChildRemoved.listen(_serverRemove));
     _subs.add(firebase.onChildChanged.listen(_serverChange));
     _subs.add(firebase.onChildMoved.listen(_serverMove));
+    _onReady = firebase.once('value');
+    // simulate childAddeds for the values already in the list because
+    // on the dart side, we don't get back events if anyone has listened
+    // on the firebase instance
+    _onReady.then((snapshot) {
+      var last = null;
+      snapshot.forEach((childSnap) {
+        _serverAdd(new Event(childSnap, last));
+        last = childSnap.key;
+      });
+    });
   }
 
   void _serverAdd(Event event) {
-    var data = _parseVal(event.snapshot.key, event.snapshot.val());
-    _moveTo(event.snapshot.key, data, event.prevChild);
-    _onValueAdded.add(new FirebaseListEvent(FirebaseListEvent.VALUE_ADDED,
-        event.snapshot.key, data, _posByKey(event.snapshot.key), event));
+    // Due to a bug in dart-firebase, onChildAdded doesn't get back events
+    // except for the first one added to a given firebase instance, so
+    // make sure the key doesn't already appear in the list, because on first
+    // load, the _onReady and onChildAddeds will both add
+    if (!_list.any((item) => item[r'$id'] == event.snapshot.key)) {
+      // print('got server add: ${event.snapshot.key}');
+      var data = _parseVal(event.snapshot.key, event.snapshot.val());
+      _moveTo(event.snapshot.key, data, event.prevChild);
+      _onValueAdded.add(new FirebaseListEvent(FirebaseListEvent.VALUE_ADDED,
+          event.snapshot.key, data, _posByKey(event.snapshot.key), event));
+    }
   }
 
   void _serverRemove(Event event) {
