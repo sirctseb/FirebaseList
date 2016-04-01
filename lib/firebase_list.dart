@@ -69,6 +69,10 @@ class FirebaseList {
     return _list[index];
   }
 
+  int indexOf(String key) {
+    return _posByKey(key);
+  }
+
   // TODO we should probably just return the futures from these?
   Future add(data) {
     var key = firebase.push().key;
