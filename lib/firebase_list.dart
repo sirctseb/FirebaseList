@@ -35,6 +35,8 @@ class FirebaseList {
   /// Reference to the [Firebase] location
   final Firebase firebase;
 
+  static final num _MIN_PRIORITY_DIFF = 0.00000005;
+
   List _list = [];
   Map _snaps = {};
 
@@ -111,6 +113,56 @@ class FirebaseList {
   void remove(int index) {
     if (index >= 0 && index < _list.length) {
       firebase.child(_list[index][r'$id']).remove();
+    }
+  }
+
+  void move(int index, destinationIndex) {
+    // index has to be a valid current index
+    if (index >= 0 && index < _list.length) {
+      // destination has to be at least zero and not equal to index or one more
+      if (destinationIndex >= 0 &&
+          destinationIndex != index &&
+          destinationIndex != index + 1) {}
+      // if moving to end, set priority after current last element
+      if (destinationIndex > _list.length - 1) {
+        _snaps[_list[index][r'$id']].ref().setPriority(
+            _snaps[_list[_list.length - 1][r'$id']].getPriority() + 1);
+      } else {
+        // otherwise, set priority between surrounding elements
+        var prevPriority =
+            _snaps[_list[destinationIndex - 1][r'$id']].getPriority();
+        var nextPriority =
+            _snaps[_list[destinationIndex][r'$id']].getPriority();
+
+        // if surrounding priority diff is too small, reset to indices
+        if (nextPriority - prevPriority < _MIN_PRIORITY_DIFF) {
+          // figure out final index of moving element
+          var finalIndex;
+          if (destinationIndex > index) {
+            finalIndex = destinationIndex - 1;
+          } else {
+            finalIndex = destinationIndex;
+          }
+
+          var update = {};
+          var newIndex = 0;
+          for (var listIndex = 0; listIndex < _list.length; listIndex++) {
+            if (listIndex == index) {
+              update[_list[listIndex][r'$id'] + '/.priority'] = finalIndex;
+            } else if (listIndex < destinationIndex) {
+              update[_list[listIndex][r'$id'] + '/.priority'] = newIndex;
+              newIndex++;
+            } else {
+              update[_list[listIndex][r'$id'] + '/.priority'] = newIndex + 1;
+              newIndex++;
+            }
+          }
+
+          firebase.update(update);
+        } else {
+          firebase.setPriority((prevPriority + nextPriority) / 2);
+        }
+      }
     }
   }
 
