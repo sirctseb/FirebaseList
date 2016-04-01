@@ -165,6 +165,8 @@ main() {
 
       var oldLength = list.length;
 
+      list.off();
+
       fb.push(value: {'hello': 'world'});
 
       expect(list.length, oldLength);
