@@ -54,6 +54,9 @@ class FirebaseList {
     _initListeners();
   }
 
+  Future _onReady;
+  Future get onReady => _onReady;
+
   /// The length of the list
   int get length => _list.length;
 
@@ -96,6 +99,7 @@ class FirebaseList {
   }
 
   void _initListeners() {
+    _onReady = firebase.once('value');
     _subs.add(firebase.onChildAdded.listen(_serverAdd));
     _subs.add(firebase.onChildRemoved.listen(_serverRemove));
     _subs.add(firebase.onChildChanged.listen(_serverChange));
