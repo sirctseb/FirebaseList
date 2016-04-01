@@ -95,8 +95,13 @@ class FirebaseList {
     }
   }
 
-  void update(key, data) {
-    firebase.child(key).update(_parseForJson(data));
+  // TODO probably remove and provide accessor to snapshots that they can
+  // use to update. this isn't listy
+  void update(int index, newValue) {
+    if (index >= 0 && index < _list.length) {
+      var key = _list[index][r'$id'];
+      firebase.child(key).update(_parseForJson(newValue));
+    }
   }
 
   void setPriority(key, priority) {
