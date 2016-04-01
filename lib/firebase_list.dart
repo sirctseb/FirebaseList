@@ -73,29 +73,29 @@ class FirebaseList {
     return _posByKey(key);
   }
 
-  // TODO we should probably just return the futures from these?
-  Future add(data) {
-    var key = firebase.push().key;
-    var ref = firebase.child(key);
-    // TODO they check that arguments were passed to this method on js side
-    // if (arguments.length > 0)
-    return ref.set(_parseForJson(data));
+  // TODO should we just return the futures from these?
+
+  // TODO js side allows push without supplying data
+  Firebase add(data) {
+    var ref = firebase.push();
+    ref.set(_parseForJson(data));
+    return ref;
   }
 
-  Future set(key, data) {
-    return firebase.child(key).set(_parseForJson(data));
+  void set(key, data) {
+    firebase.child(key).set(_parseForJson(data));
   }
 
-  Future update(key, data) {
-    return firebase.child(key).update(_parseForJson(data));
+  void update(key, data) {
+    firebase.child(key).update(_parseForJson(data));
   }
 
-  Future setPriority(key, priority) {
-    return firebase.child(key).setPriority(priority);
+  void setPriority(key, priority) {
+    firebase.child(key).setPriority(priority);
   }
 
-  Future remove(key) {
-    return firebase.child(key).remove();
+  void remove(key) {
+    firebase.child(key).remove();
   }
 
   void off() {
