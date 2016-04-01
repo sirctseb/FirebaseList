@@ -36,6 +36,7 @@ class FirebaseList {
   final Firebase firebase;
 
   List _list = [];
+  Map _snaps = {};
 
   // subscription to native firebase events
   List<StreamSubscription> _subs = [];
@@ -126,7 +127,7 @@ class FirebaseList {
     // make sure the key doesn't already appear in the list, because on first
     // load, the _onReady and onChildAddeds will both add
     if (!_list.any((item) => item[r'$id'] == event.snapshot.key)) {
-      // print('got server add: ${event.snapshot.key}');
+      _snaps[event.snapshot.key] = event.snapshot;
       var data = _parseVal(event.snapshot.key, event.snapshot.val());
       _moveTo(event.snapshot.key, data, event.prevChild);
       _onValueAdded.add(new FirebaseListEvent(FirebaseListEvent.VALUE_ADDED,
@@ -145,6 +146,7 @@ class FirebaseList {
   }
 
   void _serverChange(Event event) {
+    _snaps[event.snapshot.key] = event.snapshot;
     var pos = _posByKey(event.snapshot.key);
     if (pos != -1) {
       _list[pos] = _applyToBase(
