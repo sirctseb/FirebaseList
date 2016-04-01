@@ -457,7 +457,6 @@ main() {
     });
 
     test('returns a Firebase ref containing the record id', () async {
-
       var list = new FirebaseList(fb);
       await list.onReady;
 
@@ -468,8 +467,7 @@ main() {
 
       var ref = list.insert(1, {'foo': 'one'});
 
-      expect(list.indexOf(ref.key()), 1);
-
+      expect(list.indexOf(ref.key), 1);
     });
 
     test('adds primitives', () async {
@@ -481,10 +479,9 @@ main() {
       list.add(false);
       list.add(false);
 
-      var ref = list.insert(1, true);
+      list.insert(1, true);
 
       expect(list[1]['.value'], true);
-
     });
 
     test('adds objects', () async {
@@ -495,10 +492,9 @@ main() {
       list.add({'foo': 'zero'});
       list.add({'foo': 'two'});
 
-      var id = list.insert(1, {'foo': 'one'}).key();
+      var id = list.insert(1, {'foo': 'one'}).key;
 
       expect(list[1], equals({r'$id': id, 'foo': 'one'}));
-
     });
 
     test('inserts into empty list', () async {
