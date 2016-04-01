@@ -83,8 +83,19 @@ class FirebaseList {
     return ref;
   }
 
-  void set(key, data) {
-    firebase.child(key).set(_parseForJson(data));
+  void _set(key, data) {
+    if (!_snaps.containsKey(key)) {
+      throw new Exception('No child at $key');
+    } else {
+      var priority = _snaps[key].getPriority();
+      firebase.child(key).setWithPriority(_parseForJson(data), priority);
+    }
+  }
+
+  void set(int index, newValue) {
+    if (index >= 0 && index < _list.length) {
+      _set(_list[index][r'$id'], newValue);
+    }
   }
 
   void update(key, data) {
