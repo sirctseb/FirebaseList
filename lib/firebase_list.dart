@@ -171,6 +171,47 @@ class FirebaseList {
     }
   }
 
+  Firebase insert(int index, newValue) {
+    if (_list.length == 0 || index >= _list.length) {
+      return add(newValue);
+    }
+
+    var ref = firebase.push();
+
+    if (index == 0) {
+      var priority = _snaps[_list[0][r'$id']].getPriority();
+      // TODO do we have to _parseForJson?
+      ref.setWithPriority(newValue, priority - 1);
+    } else {
+      var prevPriority = _snaps[_list[index - 1][r'$id']].getPriority();
+      var nextPriority = _snaps[_list[index][r'$id']].getPriority();
+
+      // if diff is getting small, reset priorities
+      if (nextPriority - prevPriority < _MIN_PRIORITY_DIFF) {
+        var update = {};
+        for (var listIndex = 0; listIndex < this.list.length; listIndex++) {
+          update[this.list[listIndex].$id + '/.priority'] =
+              // skip index we are going to insert at
+              ((listIndex >= index) ? listIndex + 1 : listIndex);
+        }
+
+        // add value we're inserting
+        newValue = _parseVal(ref.key, newValue);
+        newValue.remove(r'$id');
+        newValue['.priority'] = index;
+        update[ref.key] = newValue;
+
+        // do update
+        firebase.update(update);
+      } else {
+        var priority = (prevPriority + nextPriority) / 2;
+
+        ref.setWithPriority(newValue, priority);
+      }
+    }
+    return ref;
+  }
+
   void off() {
     _dispose();
   }
