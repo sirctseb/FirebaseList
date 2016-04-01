@@ -123,16 +123,31 @@ class FirebaseList {
     _subs.add(firebase.onChildRemoved.listen(_serverRemove));
     _subs.add(firebase.onChildChanged.listen(_serverChange));
     _subs.add(firebase.onChildMoved.listen(_serverMove));
-    _onReady = firebase.once('value');
     // simulate childAddeds for the values already in the list because
     // on the dart side, we don't get back events if anyone has listened
     // on the firebase instance
-    _onReady.then((snapshot) {
+    _onReady = firebase.once('value').then((snapshot) {
       var last = null;
       snapshot.forEach((childSnap) {
         _serverAdd(new Event(childSnap, last));
         last = childSnap.key;
       });
+
+      // initialize priorities
+      var ordered = false;
+      var update = {};
+      var index = 0;
+      snapshot.forEach((childSnap) {
+        update[childSnap.key + '/.priority'] = index++;
+
+        if (childSnap.getPriority() == null) {
+          ordered = false;
+        }
+      });
+
+      if (!ordered) {
+        return firebase.update(update);
+      }
     });
   }
 
