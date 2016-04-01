@@ -11,7 +11,6 @@ main() {
 
   Firebase fb;
   fb = new Firebase('https://test-4892.firebaseio.com');
-  var list;
 
   group('FirebaseList', () {
     setUp(() async {
@@ -22,12 +21,12 @@ main() {
       }).catchError((error) {
         print(error);
       });
-
-      list = new FirebaseList(fb);
-      await list.onReady;
     });
 
     test('loads initial data', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var val = {
         'a': {'hello': 'world', 'aNumber': 1, 'aBoolean': false},
         'b': {'foo': 'bar', 'aNumber': 2, 'aBoolean': true},
@@ -38,19 +37,28 @@ main() {
     });
 
     test('handles child_added from server', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var oldLength = list.length;
       fb.child('foo').set({'hello': 'world'});
 
       expect(list.length, equals(oldLength + 1));
     });
 
-    test('handles child_removed from server', () {
+    test('handles child_removed from server', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var oldLength = list.length;
       fb.child('b').remove();
       expect(list.length, equals(oldLength - 1));
     });
 
-    test('handles child_moved from server', () {
+    test('handles child_moved from server', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var oldLength = list.length;
       fb.child('a').setPriority(100);
 
@@ -59,6 +67,9 @@ main() {
     });
 
     test('triggers callback for add', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var s = list.onValueAdded.listen(expectAsync((event) {
         expect(event.type, FirebaseListEvent.VALUE_ADDED);
         expect(event.data, contains('foo'));
@@ -73,6 +84,9 @@ main() {
     });
 
     test('triggers callback for remove', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var s = list.onValueRemoved.listen(expectAsync((event) {
         expect(event.type, FirebaseListEvent.VALUE_REMOVED);
       }, count: 1));
@@ -88,6 +102,9 @@ main() {
     });
 
     test('triggers callback for change', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var s = list.onValueSet.listen(expectAsync((event) {
         expect(event.type, FirebaseListEvent.VALUE_SET);
       }, count: 1));
@@ -103,6 +120,9 @@ main() {
     });
 
     test('triggers callback for move', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var sa = list.onValueAdded.listen(expectAsync((event) {
         expect(event.type, FirebaseListEvent.VALUE_ADDED);
       }, count: 1));
@@ -138,11 +158,11 @@ main() {
       }).catchError((error) {
         print(error);
       });
-
-      list = new FirebaseList(fb);
-      await list.onReady;
     });
-    test('stops listening to events', () {
+    test('stops listening to events', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var oldLength = list.length;
 
       fb.push(value: {'hello': 'world'});
@@ -160,11 +180,12 @@ main() {
       }).catchError((error) {
         print(error);
       });
-      list = new FirebaseList(fb);
-      await list.onReady;
     });
 
     test('returns correct index for existing records', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var i = 0;
 
       var snap = await fb.once('value');
@@ -173,9 +194,12 @@ main() {
       });
     });
 
-    test('returns -1 for missing record', () {
+    test('returns -1 for missing record', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       expect(list.length, greaterThan(0));
-      expetc(list.indexOf('notakey'), -1);
+      expect(list.indexOf('notakey'), -1);
     });
   });
 
@@ -188,20 +212,29 @@ main() {
 
     // TODO these methods are return futures in the dart api,
     // so it doesn't work to test the return value
-    test('returns a Firebase ref containing the record id', () {
+    test('returns a Firebase ref containing the record id', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       expect(list.length, 0);
       var ref = list.add({'foo': 'bar'});
       expect(list.indexOf(ref.key()), 0);
     });
 
-    test('adds primitives', () {
+    test('adds primitives', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       expect(list.length, 0);
       list.add(true);
 
       expect(list[0]['.value'], true);
     });
 
-    test('adds objects', () {
+    test('adds objects', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       expect(list.length, 0);
       var id = list.add({'foo': 'bar'}).key();
 
@@ -216,17 +249,20 @@ main() {
         'b': 'bar',
         'c': {'bar': 'baz', 'aNumber': 3, 'aBoolean': true}
       });
-
-      list = new FirebaseList(fb);
-      await list.onReady;
     });
-    test('updates existing primitive', () {
+    test('updates existing primitive', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       expect(list[1]['.value'], 'bar');
       list.setAt(1, 'baz');
 
       expect(list[1]['.value'], 'baz');
     });
     test('updates existing object', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var dat = (await fb.child('a').once('value')).val();
 
       dat['test'] = true;
@@ -236,7 +272,10 @@ main() {
       expect(list[0]['test'], true);
     });
 
-    test('does not replace object references', () {
+    test('does not replace object references', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       // TODO is this the same as the js side?
       var listCopy = list.list;
 
@@ -248,7 +287,10 @@ main() {
       }
     });
 
-    test('does not create record if does not exist', () {
+    test('does not create record if does not exist', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var len = list.length;
       list.setAt(100, {'hello': 'world'});
 
@@ -269,30 +311,39 @@ main() {
       }).catchError((error) {
         print(error);
       });
-
-      list = new FirebaseList(fb);
-      await list.onReady;
     });
 
-    test('throws error if passed a primitive', () {
+    test('throws error if passed a primitive', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       expect(() {
         list.updateAt(3, true);
       }, throws);
     });
 
-    test('replaces a primitive', () {
+    test('replaces a primitive', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       list.updateA(3, {'hello': 'world'});
 
       expect(list[3], {r'$id': 'foo', 'hello': 'world'});
     });
 
-    test('updates object', () {
+    test('updates object', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       list.updateAt(0, {'test': true});
 
       expect(list[0]['test'], true);
     });
 
-    test('does not affect data that is not part of the update', () {
+    test('does not affect data that is not part of the update', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var copy = new Map.from(list[0]);
 
       list.updateAt(0, {'test': true});
@@ -302,7 +353,10 @@ main() {
       });
     });
 
-    test('does not replace object references', () {
+    test('does not replace object references', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var listCopy = new List.from(list.list);
 
       list.updateAt(0, {'test': 'hello'});
@@ -313,7 +367,10 @@ main() {
       }
     });
 
-    test('does not create record if does not exist', () {
+    test('does not create record if does not exist', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var len = list.length;
       list.updateAt(100, {'hello': 'world'});
 
@@ -332,12 +389,12 @@ main() {
       }).catchError((error) {
         print(error);
       });
-
-      list = new FireabaseList(fb);
-      await list.onReady;
     });
 
-    test('removes existing records', () {
+    test('removes existing records', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var len = list.length;
       list.removeAt(0);
 
@@ -345,7 +402,10 @@ main() {
       expect(list.indexOf('a'), -1);
     });
 
-    test('does not blow up if record does not exist', () {
+    test('does not blow up if record does not exist', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var len = list.length;
 
       list.removeAt(-1);
@@ -358,20 +418,10 @@ main() {
   });
 
   group('move', () {
-    setUp(() async {
-      await fb.set({
-        'a': {'hello': 'world', 'aNumber': 1, 'aBoolean': false},
-        'b': {'foo': 'bar', 'aNumber': 2, 'aBoolean': true},
-        'c': {'bar': 'baz', 'aNumber': 3, 'aBoolean': true}
-      }).catchError((error) {
-        print(error);
-      });
-
-      list = new FireabaseList(fb);
-      await list.onReady;
-    });
-
     test('moves existing records', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       var snap = await fb.once('value');
 
       List keys = snap.val().keys.toList();
@@ -385,6 +435,8 @@ main() {
     });
 
     test('does not change if record does not exist', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
 
       var snap = await fb.once('value');
       var keys = snap.val().keys.toList();
@@ -399,12 +451,13 @@ main() {
 
   group('insert', () {
     setUp(() async {
-      await fb.set(null);
-      list = new FirebaseList(fb);
-      await list.onReady;
+      return await fb.set(null);
     });
 
-    test('returns a Firebase ref containing the record id', () {
+    test('returns a Firebase ref containing the record id', () async {
+
+      var list = new FirebaseList(fb);
+      await list.onReady;
 
       expect(list.length, 0);
 
@@ -414,9 +467,13 @@ main() {
       var ref = list.insert(1, {'foo': 'one'});
 
       expect(list.indexOf(ref.key()), 1);
+
     });
 
-    test('adds primitives', () {
+    test('adds primitives', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       expect(list.length, 0);
 
       list.add(false);
@@ -425,9 +482,12 @@ main() {
       var ref = list.insert(1, true);
 
       expect(list[1]['.value'], true);
+
     });
 
-    test('adds objects', () {
+    test('adds objects', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
 
       expect(list.length, 0);
       list.add({'foo': 'zero'});
@@ -436,14 +496,21 @@ main() {
       var id = list.insert(1, {'foo': 'one'}).key();
 
       expect(list[1], equals({r'$id': id, 'foo': 'one'}));
+
     });
 
-    test('inserts into empty list', () {
+    test('inserts into empty list', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       list.insert(0, 'zero');
       expect(list.length, 1);
     });
 
-    test('inserts at end', () {
+    test('inserts at end', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
       list.add('zero');
       list.insert(1, 'one');
 
