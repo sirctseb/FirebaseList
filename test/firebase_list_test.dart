@@ -220,7 +220,7 @@ main() {
 
       expect(list.length, 0);
       var ref = list.add({'foo': 'bar'});
-      expect(list.indexOf(ref.key()), 0);
+      expect(list.indexOf(ref.key), 0);
     });
 
     test('adds primitives', () async {
@@ -238,13 +238,13 @@ main() {
       await list.onReady;
 
       expect(list.length, 0);
-      var id = list.add({'foo': 'bar'}).key();
+      var id = list.add({'foo': 'bar'}).key;
 
       expect(list[0], equals({r'$id': id, 'foo': 'bar'}));
     });
   });
 
-  group('setAt', () {
+  group('set', () {
     setUp(() async {
       return await fb.set({
         'a': {'hello': 'world', 'aNumber': 1, 'aBoolean': false},
@@ -257,7 +257,7 @@ main() {
       await list.onReady;
 
       expect(list[1]['.value'], 'bar');
-      list.setAt(1, 'baz');
+      list.set(1, 'baz');
 
       expect(list[1]['.value'], 'baz');
     });
@@ -269,7 +269,7 @@ main() {
 
       dat['test'] = true;
 
-      list.setAt(0, dat);
+      list.set(0, dat);
 
       expect(list[0]['test'], true);
     });
@@ -281,7 +281,7 @@ main() {
       // TODO is this the same as the js side?
       var listCopy = list.list;
 
-      list.setAt(0, {'test': 'hello'});
+      list.set(0, {'test': 'hello'});
 
       expect(list.length, greaterThan(0));
       for (int i = 0; i < list.length; i++) {
@@ -294,7 +294,7 @@ main() {
       await list.onReady;
 
       var len = list.length;
-      list.setAt(100, {'hello': 'world'});
+      list.set(100, {'hello': 'world'});
 
       expect(list.length, len);
       // TODO this doesn't really make sense for the test anymore
@@ -302,7 +302,7 @@ main() {
     });
   });
 
-  group('updateAt', () {
+  group('update', () {
     setUp(() async {
       await fb.set({
         'a': {'hello': 'world', 'aNumber': 1, 'aBoolean': false},
@@ -320,7 +320,7 @@ main() {
       await list.onReady;
 
       expect(() {
-        list.updateAt(3, true);
+        list.update(3, true);
       }, throws);
     });
 
@@ -328,7 +328,7 @@ main() {
       var list = new FirebaseList(fb);
       await list.onReady;
 
-      list.updateA(3, {'hello': 'world'});
+      list.update(3, {'hello': 'world'});
 
       expect(list[3], {r'$id': 'foo', 'hello': 'world'});
     });
@@ -337,7 +337,7 @@ main() {
       var list = new FirebaseList(fb);
       await list.onReady;
 
-      list.updateAt(0, {'test': true});
+      list.update(0, {'test': true});
 
       expect(list[0]['test'], true);
     });
@@ -348,7 +348,7 @@ main() {
 
       var copy = new Map.from(list[0]);
 
-      list.updateAt(0, {'test': true});
+      list.update(0, {'test': true});
 
       copy.forEach((key, value) {
         expect(list[0][key], value);
@@ -361,7 +361,7 @@ main() {
 
       var listCopy = new List.from(list.list);
 
-      list.updateAt(0, {'test': 'hello'});
+      list.update(0, {'test': 'hello'});
 
       expect(list.length, greaterThan(0));
       for (int i = 0; i < list.length; i++) {
@@ -374,7 +374,7 @@ main() {
       await list.onReady;
 
       var len = list.length;
-      list.updateAt(100, {'hello': 'world'});
+      list.update(100, {'hello': 'world'});
 
       expect(list.length, len);
       // TODO this doesn't make sense anymore
@@ -382,7 +382,7 @@ main() {
     });
   });
 
-  group('removeAt', () {
+  group('remove', () {
     setUp(() async {
       await fb.set({
         'a': {'hello': 'world', 'aNumber': 1, 'aBoolean': false},
@@ -398,7 +398,7 @@ main() {
       await list.onReady;
 
       var len = list.length;
-      list.removeAt(0);
+      list.remove(0);
 
       expect(list.length, len - 1);
       expect(list.indexOf('a'), -1);
@@ -410,8 +410,8 @@ main() {
 
       var len = list.length;
 
-      list.removeAt(-1);
-      list.removeAt(100);
+      list.remove(-1);
+      list.remove(100);
 
       expect(list.length, len);
       // TODO this doesn't make sense anymore
