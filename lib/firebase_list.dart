@@ -236,7 +236,7 @@ class FirebaseList {
       });
 
       // initialize priorities
-      var ordered = false;
+      var ordered = true;
       var update = {};
       var index = 0;
       snapshot.forEach((childSnap) {
