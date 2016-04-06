@@ -121,6 +121,10 @@ class FirebaseList {
     }
   }
 
+  void removeByKey(String key) {
+    firebase.child(key).remove();
+  }
+
   void move(int index, destinationIndex) {
     // index has to be a valid current index
     if (index >= 0 && index < _list.length) {

@@ -419,6 +419,42 @@ main() {
     });
   });
 
+  group('removeByKey', () {
+    setUp(() async {
+      await fb.set({
+        'a': {'hello': 'world', 'aNumber': 1, 'aBoolean': false},
+        'b': {'foo': 'bar', 'aNumber': 2, 'aBoolean': true},
+        'c': {'bar': 'baz', 'aNumber': 3, 'aBoolean': true}
+      }).catchError((error) {
+        print(error);
+      });
+    });
+
+    test('removes existing records', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
+      var len = list.length;
+      list.removeByKey('a');
+
+      expect(list.length, len - 1);
+      expect(list.indexOf('a'), -1);
+    });
+
+    test('does not blow up if record does not exist', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
+      var len = list.length;
+
+      list.removeByKey('notakey');
+
+      expect(list.length, len);
+      // TODO this doesn't make sense anymore
+      expect(list.indexOf('notakey'), -1);
+    });
+  });
+
   group('move', () {
     test('moves existing records', () async {
       var list = new FirebaseList(fb);
