@@ -242,6 +242,25 @@ main() {
 
       expect(list[0], equals({r'$id': id, 'foo': 'bar'}));
     });
+
+    test('emits event synchronously', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
+      bool flag = false;
+      var s = list.onValueAdded.listen((event) {
+
+        expect(event.type, FirebaseListEvent.VALUE_ADDED);
+        expect(event.data, contains('foo'));
+        expect(flag, false);
+        flag = true;
+      });
+
+      list.add({'foo': 'bar'});
+      expect(flag, true);
+
+      s.cancel();
+    });
   });
 
   group('set', () {

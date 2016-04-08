@@ -44,9 +44,9 @@ class FirebaseList {
   List<StreamSubscription> _subs = [];
 
   // stream controllers for FirebaseListEvents
-  StreamController _onValueAdded = new StreamController.broadcast();
-  StreamController _onValueRemoved = new StreamController.broadcast();
-  StreamController _onValueSet = new StreamController.broadcast();
+  StreamController _onValueAdded = new StreamController.broadcast(sync: true);
+  StreamController _onValueRemoved = new StreamController.broadcast(sync: true);
+  StreamController _onValueSet = new StreamController.broadcast(sync: true);
 
   /// Event that occurs when a new value is added to the list
   Stream<FirebaseListEvent> get onValueAdded => _onValueAdded.stream;
