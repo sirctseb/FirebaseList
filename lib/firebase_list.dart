@@ -136,6 +136,11 @@ class FirebaseList {
       if (destinationIndex > _list.length - 1) {
         _snaps[_list[index][r'$id']].ref().setPriority(
             _snaps[_list[_list.length - 1][r'$id']].getPriority() + 1);
+      } else if (destinationIndex == 0) {
+        // if moving to beginning, set to priority before first element
+        _snaps[_list[index][r'$id']].ref().setPriority(
+          _snaps[_list.first[r'$id']].getPriority() - 1
+        );
       } else {
         // otherwise, set priority between surrounding elements
         var prevPriority =
@@ -169,7 +174,7 @@ class FirebaseList {
 
           firebase.update(update);
         } else {
-          firebase.setPriority((prevPriority + nextPriority) / 2);
+          _snaps[_list[index][r'$id']].ref().setPriority((prevPriority + nextPriority) / 2);
         }
       }
     }
