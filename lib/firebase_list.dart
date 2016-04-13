@@ -180,7 +180,7 @@ class FirebaseList {
     }
   }
 
-  Firebase insert(int index, newValue) {
+  Firebase insert(int index, newValue, [bool forceIndexUpdate = false]) {
     if (_list.length == 0 || index >= _list.length) {
       return add(newValue);
     }
@@ -196,7 +196,7 @@ class FirebaseList {
       var nextPriority = _snaps[_list[index][r'$id']].getPriority();
 
       // if diff is getting small, reset priorities
-      if (nextPriority - prevPriority < _MIN_PRIORITY_DIFF) {
+      if (nextPriority - prevPriority < _MIN_PRIORITY_DIFF || forceIndexUpdate) {
         var update = {};
         for (var listIndex = 0; listIndex < this.list.length; listIndex++) {
           update[this.list[listIndex].$id + '/.priority'] =
