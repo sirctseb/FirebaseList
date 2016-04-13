@@ -570,5 +570,55 @@ main() {
       expect(list.length, 2);
       expect(list[1]['.value'], 'one');
     });
+
+    test('resets priorities to indices', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
+      list.add('zero');
+      list.add('three');
+      list.insert(1, 'two');
+
+      // force priority reset
+      list.insert(1, 'one', true);
+
+      fb.once('value').then((snap) {
+        int index = 0;
+        snap.forEach((childSnap) {
+          expect(childSnap.getPriority(), index++);
+        });
+      });
+    });
+
+    test('doesn\'t incur extra events on index reset', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
+      list.add('zero');
+      list.add('three');
+      list.insert(1, 'two');
+
+      var sa = list.onValueAdded.listen(expectAsync((event) {
+        expect(event.index, 1);
+      }, count: 1));
+      var sr = list.onValueRemoved.listen(expectAsync((event) {
+      }, count: 0));
+      var ss = list.onValueSet.listen(expectAsync((event) {
+      }, count: 0));
+
+      // force priority reset
+      list.insert(1, 'one', true);
+
+      fb.once('value').then((snap) {
+        int index = 0;
+        snap.forEach((childSnap) {
+          expect(childSnap.getPriority(), index++);
+        });
+      });
+
+      sa.cancel();
+      sr.cancel();
+      ss.cancel();
+    });
   });
 }
