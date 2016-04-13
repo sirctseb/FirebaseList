@@ -199,7 +199,7 @@ class FirebaseList {
       if (nextPriority - prevPriority < _MIN_PRIORITY_DIFF || forceIndexUpdate) {
         var update = {};
         for (var listIndex = 0; listIndex < this.list.length; listIndex++) {
-          update[this.list[listIndex].$id + '/.priority'] =
+          update[this.list[listIndex][r'$id'] + '/.priority'] =
               // skip index we are going to insert at
               ((listIndex >= index) ? listIndex + 1 : listIndex);
         }
