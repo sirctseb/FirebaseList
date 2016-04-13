@@ -2,6 +2,7 @@ library firebase_list;
 
 import 'dart:async';
 import 'package:firebase/firebase.dart';
+import 'package:collection_helpers/equality.dart';
 
 class FirebaseListEvent {
   /// The event type. FirebaseListEvent.VALUE_ADDED,
@@ -138,9 +139,9 @@ class FirebaseList {
             _snaps[_list[_list.length - 1][r'$id']].getPriority() + 1);
       } else if (destinationIndex == 0) {
         // if moving to beginning, set to priority before first element
-        _snaps[_list[index][r'$id']].ref().setPriority(
-          _snaps[_list.first[r'$id']].getPriority() - 1
-        );
+        _snaps[_list[index][r'$id']]
+            .ref()
+            .setPriority(_snaps[_list.first[r'$id']].getPriority() - 1);
       } else {
         // otherwise, set priority between surrounding elements
         var prevPriority =
@@ -174,7 +175,9 @@ class FirebaseList {
 
           firebase.update(update);
         } else {
-          _snaps[_list[index][r'$id']].ref().setPriority((prevPriority + nextPriority) / 2);
+          _snaps[_list[index][r'$id']]
+              .ref()
+              .setPriority((prevPriority + nextPriority) / 2);
         }
       }
     }
@@ -196,7 +199,8 @@ class FirebaseList {
       var nextPriority = _snaps[_list[index][r'$id']].getPriority();
 
       // if diff is getting small, reset priorities
-      if (nextPriority - prevPriority < _MIN_PRIORITY_DIFF || forceIndexUpdate) {
+      if (nextPriority - prevPriority < _MIN_PRIORITY_DIFF ||
+          forceIndexUpdate) {
         var update = {};
         for (var listIndex = 0; listIndex < this.list.length; listIndex++) {
           update[this.list[listIndex][r'$id'] + '/.priority'] =
@@ -204,14 +208,12 @@ class FirebaseList {
               ((listIndex >= index) ? listIndex + 1 : listIndex);
         }
 
-        // add value we're inserting
-        newValue = _parseVal(ref.key, newValue);
-        newValue.remove(r'$id');
-        newValue['.priority'] = index;
-        update[ref.key] = newValue;
-
-        // do update
+        // do update without new value so moves get filtered for being the same
+        // index
         firebase.update(update);
+
+        // set the new value
+        ref.setWithPriority(_parseForJson(newValue), index);
       } else {
         var priority = (prevPriority + nextPriority) / 2;
 
@@ -286,10 +288,16 @@ class FirebaseList {
     _snaps[event.snapshot.key] = event.snapshot;
     var pos = _posByKey(event.snapshot.key);
     if (pos != -1) {
-      _list[pos] = _applyToBase(
+      // check if the non-priority value has changed
+      var mapEq = const MapEquality();
+      bool same = mapEq.equals(
           _list[pos], _parseVal(event.snapshot.key, event.snapshot.val()));
-      _onValueSet.add(new FirebaseListEvent(FirebaseListEvent.VALUE_SET,
-          event.snapshot.key, _list[pos], pos, event));
+      if (!same) {
+        _list[pos] = _applyToBase(
+            _list[pos], _parseVal(event.snapshot.key, event.snapshot.val()));
+        _onValueSet.add(new FirebaseListEvent(FirebaseListEvent.VALUE_SET,
+            event.snapshot.key, _list[pos], pos, event));
+      }
     }
   }
 
@@ -297,13 +305,21 @@ class FirebaseList {
     var id = event.snapshot.key;
     var oldPos = _posByKey(id);
     if (oldPos != -1) {
-      var data = _list[oldPos];
-      _list.removeAt(oldPos);
-      _moveTo(id, data, event.prevChild);
-      _onValueRemoved.add(new FirebaseListEvent(FirebaseListEvent.VALUE_REMOVED,
-          event.snapshot.key, data, oldPos, event));
-      _onValueAdded.add(new FirebaseListEvent(FirebaseListEvent.VALUE_ADDED,
-          event.snapshot.key, data, _posByKey(event.snapshot.key), event));
+      // if new index is the same as old index, don't do anything
+      if (!(event.prevChild == null && oldPos == 0 ||
+          _posByKey(event.prevChild) == oldPos - 1)) {
+        var data = _list[oldPos];
+        _list.removeAt(oldPos);
+        _moveTo(id, data, event.prevChild);
+        _onValueRemoved.add(new FirebaseListEvent(
+            FirebaseListEvent.VALUE_REMOVED,
+            event.snapshot.key,
+            data,
+            oldPos,
+            event));
+        _onValueAdded.add(new FirebaseListEvent(FirebaseListEvent.VALUE_ADDED,
+            event.snapshot.key, data, _posByKey(event.snapshot.key), event));
+      }
     }
   }
 
