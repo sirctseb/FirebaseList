@@ -249,7 +249,6 @@ main() {
 
       bool flag = false;
       var s = list.onValueAdded.listen((event) {
-
         expect(event.type, FirebaseListEvent.VALUE_ADDED);
         expect(event.data, contains('foo'));
         expect(flag, false);
@@ -600,21 +599,18 @@ main() {
 
       var sa = list.onValueAdded.listen(expectAsync((event) {
         expect(event.index, 1);
+        expect(event.data['.value'], 'one');
+        // print('got value added at index ${event.index}');
       }, count: 1));
       var sr = list.onValueRemoved.listen(expectAsync((event) {
+        // expect(false, true);
       }, count: 0));
       var ss = list.onValueSet.listen(expectAsync((event) {
+        // expect(event.index, 1);
       }, count: 0));
 
       // force priority reset
       list.insert(1, 'one', true);
-
-      fb.once('value').then((snap) {
-        int index = 0;
-        snap.forEach((childSnap) {
-          expect(childSnap.getPriority(), index++);
-        });
-      });
 
       sa.cancel();
       sr.cancel();
