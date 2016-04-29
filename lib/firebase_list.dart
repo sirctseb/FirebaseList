@@ -122,6 +122,24 @@ class FirebaseList {
     }
   }
 
+  void removeRange(int startIndex, int endIndex) {
+    if (endIndex > _list.length) {
+      endIndex = _list.length;
+    }
+
+    if (endIndex <= startIndex) return;
+    if (startIndex < 0) return;
+    if (startIndex > _list.length) return;
+
+    // build update object to remove all keys
+    Map update = {};
+    for (int i = startIndex; i < endIndex; i++) {
+      update[_list[i][r'$id']] = null;
+    }
+
+    firebase.update(update);
+  }
+
   void removeByKey(String key) {
     firebase.child(key).remove();
   }

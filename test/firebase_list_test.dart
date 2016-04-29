@@ -437,6 +437,57 @@ main() {
     });
   });
 
+  group('removeRange', () {
+    setUp(() async {
+      await fb.set({
+        'a': {'hello': 'world', 'aNumber': 1, 'aBoolean': false},
+        'b': {'foo': 'bar', 'aNumber': 2, 'aBoolean': true},
+        'c': {'bar': 'baz', 'aNumber': 3, 'aBoolean': true}
+      }).catchError((error) {
+        print(error);
+      });
+    });
+
+    test('removes existing records', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
+      var len = list.length;
+      list.removeRange(0, 2);
+
+      expect(list.length, len - 2);
+      expect(list.indexOf('a'), -1);
+      expect(list.indexOf('b'), -1);
+      expect(list.indexOf('c'), 0);
+    });
+
+    test('is noop if starting index is >= length', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
+      var len = list.length;
+      list.removeRange(3, 5);
+
+      expect(list.length, len);
+      expect(list.indexOf('a'), 0);
+      expect(list.indexOf('b'), 1);
+      expect(list.indexOf('c'), 2);
+    });
+
+    test('accepts end indices larger than length', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
+      var len = list.length;
+      list.removeRange(2, 5);
+
+      expect(list.length, len - 1);
+      expect(list.indexOf('a'), 0);
+      expect(list.indexOf('b'), 1);
+      expect(list.indexOf('c'), -1);
+    });
+  });
+
   group('removeByKey', () {
     setUp(() async {
       await fb.set({
