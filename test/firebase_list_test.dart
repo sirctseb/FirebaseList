@@ -149,6 +149,37 @@ main() {
   // TODO ?
   //group(r'$rawData' () {});
 
+  group('getSnapshot', () {
+    setUp(() async {
+      await fb.set({
+        'a': {'hello': 'world', 'aNumber': 1, 'aBoolean': false},
+        'b': {'foo': 'bar', 'aNumber': 2, 'aBoolean': true},
+        'c': {'bar': 'baz', 'aNumber': 3, 'aBoolean': true}
+      }).catchError((error) {
+        print(error);
+      });
+    });
+
+    test('returns correct snapshot', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
+      var snapshot = list.getSnapshot(1);
+      expect(snapshot.key, list[1][r'$id']);
+    });
+
+    test('returns snapshot synchronously', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
+      var ref = list.add('newvalue');
+
+      var snapshot = list.getSnapshot(3);
+      expect(snapshot.key, ref.key);
+      expect(snapshot.key, list[3][r'$id']);
+    });
+  });
+
   group('off', () {
     setUp(() async {
       await fb.set({

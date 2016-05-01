@@ -73,6 +73,10 @@ class FirebaseList {
     return _list[index];
   }
 
+  DataSnapshot getSnapshot(int index) {
+    return _snaps[_list[index][r'$id']];
+  }
+
   int indexOf(String key) {
     return _posByKey(key);
   }
