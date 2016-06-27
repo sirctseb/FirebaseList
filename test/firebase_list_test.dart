@@ -243,8 +243,6 @@ main() {
       });
     });
 
-    // TODO these methods are return futures in the dart api,
-    // so it doesn't work to test the return value
     test('returns a Firebase ref containing the record id', () async {
       var list = new FirebaseList(fb);
       await list.onReady;
@@ -343,91 +341,9 @@ main() {
       await list.onReady;
 
       var len = list.length;
-      list.set(100, {'hello': 'world'});
+      expect(() => list.set(100, {'hello': 'world'}), throws);
 
       expect(list.length, len);
-      // TODO this doesn't really make sense for the test anymore
-      expect(list.indexOf('notakey'), -1);
-    });
-  });
-
-  group('update', () {
-    setUp(() async {
-      await fb.set({
-        'a': {'hello': 'world', 'aNumber': 1, 'aBoolean': false},
-        'b': {'foo': 'bar', 'aNumber': 2, 'aBoolean': true},
-        'c': {'bar': 'baz', 'aNumber': 3, 'aBoolean': true},
-        'foo': 'bar',
-        'hello': 'world'
-      }).catchError((error) {
-        print(error);
-      });
-    });
-
-    test('throws error if passed a primitive', () async {
-      var list = new FirebaseList(fb);
-      await list.onReady;
-
-      expect(() {
-        list.update(3, true);
-      }, throws);
-    });
-
-    test('replaces a primitive', () async {
-      var list = new FirebaseList(fb);
-      await list.onReady;
-
-      list.update(3, {'hello': 'world'});
-
-      expect(list[3], {r'$id': 'foo', 'hello': 'world'});
-    });
-
-    test('updates object', () async {
-      var list = new FirebaseList(fb);
-      await list.onReady;
-
-      list.update(0, {'test': true});
-
-      expect(list[0]['test'], true);
-    });
-
-    test('does not affect data that is not part of the update', () async {
-      var list = new FirebaseList(fb);
-      await list.onReady;
-
-      var copy = new Map.from(list[0]);
-
-      list.update(0, {'test': true});
-
-      copy.forEach((key, value) {
-        expect(list[0][key], value);
-      });
-    });
-
-    test('does not replace object references', () async {
-      var list = new FirebaseList(fb);
-      await list.onReady;
-
-      var listCopy = new List.from(list.list);
-
-      list.update(0, {'test': 'hello'});
-
-      expect(list.length, greaterThan(0));
-      for (int i = 0; i < list.length; i++) {
-        expect(list[i], equals(listCopy[i]));
-      }
-    });
-
-    test('does not create record if does not exist', () async {
-      var list = new FirebaseList(fb);
-      await list.onReady;
-
-      var len = list.length;
-      list.update(100, {'hello': 'world'});
-
-      expect(list.length, len);
-      // TODO this doesn't make sense anymore
-      expect(list.indexOf('notakey'), -1);
     });
   });
 
@@ -453,7 +369,7 @@ main() {
       expect(list.indexOf('a'), -1);
     });
 
-    test('does not blow up if record does not exist', () async {
+    test('noop if record does not exist', () async {
       var list = new FirebaseList(fb);
       await list.onReady;
 
@@ -463,8 +379,6 @@ main() {
       list.remove(100);
 
       expect(list.length, len);
-      // TODO this doesn't make sense anymore
-      expect(list.indexOf('notakey'), -1);
     });
   });
 
@@ -492,7 +406,7 @@ main() {
       expect(list.indexOf('c'), 0);
     });
 
-    test('is noop if starting index is >= length', () async {
+    test('noop if starting index is >= length', () async {
       var list = new FirebaseList(fb);
       await list.onReady;
 
