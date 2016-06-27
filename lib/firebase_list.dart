@@ -144,6 +144,10 @@ class FirebaseList {
     firebase.update(update);
   }
 
+  void clear() {
+    removeRange(0, length);
+  }
+
   void removeByKey(String key) {
     firebase.child(key).remove();
   }
