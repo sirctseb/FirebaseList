@@ -77,6 +77,10 @@ class FirebaseList {
     return _snaps[_list[index][r'$id']];
   }
 
+  DataSnapshot getSnapshotByKey(String key) {
+    return _snaps[key];
+  }
+
   int indexOf(String key) {
     return _posByKey(key);
   }
@@ -299,6 +303,7 @@ class FirebaseList {
     _dispose();
   }
 
+  // TODO can reset priorities without providing update
   void _initListeners() {
     _subs.add(firebase.onChildAdded.listen(_serverAdd));
     _subs.add(firebase.onChildRemoved.listen(_serverRemove));
