@@ -613,4 +613,42 @@ main() {
       ss.cancel();
     });
   });
+
+  group('clear', () {
+    setUp(() async {
+      await fb.set({
+        'a': {'hello': 'world', 'aNumber': 1, 'aBoolean': false},
+        'b': {'foo': 'bar', 'aNumber': 2, 'aBoolean': true},
+        'c': {'bar': 'baz', 'aNumber': 3, 'aBoolean': true}
+      }).catchError((error) {
+        print(error);
+      });
+    });
+
+    test('removes existing records', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
+      list.clear();
+
+      expect(list.length, 0);
+      expect(list.indexOf('a'), -1);
+      expect(list.indexOf('b'), -1);
+      expect(list.indexOf('c'), -1);
+    });
+
+    test('handles noop', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
+      fb.set(null);
+
+      list.clear();
+
+      expect(list.length, 0);
+      expect(list.indexOf('a'), -1);
+      expect(list.indexOf('b'), -1);
+      expect(list.indexOf('c'), -1);
+    });
+  });
 }
