@@ -167,7 +167,10 @@ class FirebaseList {
   }
 
   void clear() {
-    firebase.update(getClearUpdate());
+    var update = getClearUpdate();
+    if (update != null) {
+      firebase.update(update);
+    }
   }
 
   Map getClearUpdate() {
