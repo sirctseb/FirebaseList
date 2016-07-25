@@ -431,6 +431,20 @@ main() {
       expect(list.indexOf('b'), 1);
       expect(list.indexOf('c'), -1);
     });
+
+    test('handles noop', () async {
+      var list = new FirebaseList(fb);
+      await list.onReady;
+
+      fb.set(null);
+
+      list.removeRange(0, 1);
+
+      expect(list.length, 0);
+      expect(list.indexOf('a'), -1);
+      expect(list.indexOf('b'), -1);
+      expect(list.indexOf('c'), -1);
+    });
   });
 
   group('removeByKey', () {
