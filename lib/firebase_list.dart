@@ -2,7 +2,7 @@ library firebase_list;
 
 import 'dart:async';
 import 'package:firebase/firebase.dart';
-import 'package:collection_helpers/equality.dart';
+import 'package:collection/collection.dart';
 
 class FirebaseListEvent {
   /// The event type. FirebaseListEvent.VALUE_ADDED,
@@ -20,7 +20,7 @@ class FirebaseListEvent {
   final int index;
 
   /// The original firebase event that prompted this event
-  final Event event;
+  final QueryEvent event;
 
   FirebaseListEvent(this.type, this.key, this.data, this.index, this.event);
 
@@ -34,7 +34,7 @@ class FirebaseListEvent {
  */
 class FirebaseList {
   /// Reference to the [Firebase] location
-  final Firebase firebase;
+  final DatabaseReference firebase;
 
   static final num _MIN_PRIORITY_DIFF = 0.00000005;
 
@@ -45,16 +45,16 @@ class FirebaseList {
   List<StreamSubscription> _subs = [];
 
   // stream controllers for FirebaseListEvents
-  StreamController _onValueAdded = new StreamController.broadcast(sync: true);
-  StreamController _onValueRemoved = new StreamController.broadcast(sync: true);
-  StreamController _onValueSet = new StreamController.broadcast(sync: true);
+  StreamController<FirebaseListEvent> _onValueAdded = new StreamController.broadcast(sync: true);
+  StreamController<FirebaseListEvent> _onValueRemoved = new StreamController.broadcast(sync: true);
+  StreamController<FirebaseListEvent> _onValueSet = new StreamController.broadcast(sync: true);
 
   /// Event that occurs when a new value is added to the list
   Stream<FirebaseListEvent> get onValueAdded => _onValueAdded.stream;
   Stream<FirebaseListEvent> get onValueRemoved => _onValueRemoved.stream;
   Stream<FirebaseListEvent> get onValueSet => _onValueSet.stream;
 
-  FirebaseList(Firebase this.firebase) {
+  FirebaseList(DatabaseReference this.firebase) {
     _initListeners();
   }
 
@@ -86,7 +86,7 @@ class FirebaseList {
   }
 
   /// Add the provided value to the end of the list
-  Firebase add(data) {
+  DatabaseReference add(data) {
     var update = getAddUpdate(data);
     firebase.update(update);
     return firebase.child(update.keys.first);
@@ -95,7 +95,7 @@ class FirebaseList {
   /// Produce a Map that can be passed to firebase.update to add to the list
   /// `list.firebase.update(list.getAddUpdate(data))` is equivalent to
   /// `list.add(data)`
-  Map getAddUpdate(data) {
+  Map getAddUpdate(dynamic data) {
     var _data = _parseForUpdate(data);
     var ref = firebase.push();
     var priority = 0;
@@ -255,13 +255,13 @@ class FirebaseList {
     return null;
   }
 
-  Firebase insert(int index, newValue, [bool forceIndexUpdate = false]) {
+  DatabaseReference insert(int index, newValue, [bool forceIndexUpdate = false]) {
     var update = getInsertUpdate(index, newValue, forceIndexUpdate);
     firebase.update(update);
     return _lastInsertedRef;
   }
 
-  Firebase _lastInsertedRef;
+  DatabaseReference _lastInsertedRef;
 
   Map getInsertUpdate(int index, newValue, [bool forceIndexUpdate = false]) {
     if (_list.length == 0 || index >= _list.length) {
@@ -315,10 +315,10 @@ class FirebaseList {
     // simulate childAddeds for the values already in the list because
     // on the dart side, we don't get back events if anyone has listened
     // on the firebase instance
-    _onReady = firebase.once('value').then((snapshot) {
+    _onReady = firebase.once('value').then((event) {
       var last = null;
-      snapshot.forEach((childSnap) {
-        _serverAdd(new Event(childSnap, last));
+      event.snapshot.forEach((childSnap) {
+        _serverAdd(new QueryEvent(childSnap, last));
         last = childSnap.key;
       });
 
@@ -326,7 +326,7 @@ class FirebaseList {
       var ordered = true;
       var update = {};
       var index = 0;
-      snapshot.forEach((childSnap) {
+      event.snapshot.forEach((childSnap) {
         update[childSnap.key + '/.priority'] = index++;
 
         if (childSnap.getPriority() == null) {
@@ -340,7 +340,7 @@ class FirebaseList {
     });
   }
 
-  void _serverAdd(Event event) {
+  void _serverAdd(QueryEvent event) {
     // Due to a bug in dart-firebase, onChildAdded doesn't get back events
     // except for the first one added to a given firebase instance, so
     // make sure the key doesn't already appear in the list, because on first
@@ -348,13 +348,13 @@ class FirebaseList {
     if (!_list.any((item) => item[r'$id'] == event.snapshot.key)) {
       _snaps[event.snapshot.key] = event.snapshot;
       var data = _parseVal(event.snapshot.key, event.snapshot.val());
-      _moveTo(event.snapshot.key, data, event.prevChild);
+      _moveTo(event.snapshot.key, data, event.prevChildKey);
       _onValueAdded.add(new FirebaseListEvent(FirebaseListEvent.VALUE_ADDED,
           event.snapshot.key, data, _posByKey(event.snapshot.key), event));
     }
   }
 
-  void _serverRemove(Event event) {
+  void _serverRemove(QueryEvent event) {
     var pos = _posByKey(event.snapshot.key);
     if (pos != -1) {
       var data = _list[pos];
@@ -364,7 +364,7 @@ class FirebaseList {
     }
   }
 
-  void _serverChange(Event event) {
+  void _serverChange(QueryEvent event) {
     _snaps[event.snapshot.key] = event.snapshot;
     var pos = _posByKey(event.snapshot.key);
     if (pos != -1) {
@@ -381,16 +381,16 @@ class FirebaseList {
     }
   }
 
-  void _serverMove(Event event) {
+  void _serverMove(QueryEvent event) {
     var id = event.snapshot.key;
     var oldPos = _posByKey(id);
     if (oldPos != -1) {
       // if new index is the same as old index, don't do anything
-      if (!(event.prevChild == null && oldPos == 0 ||
-          _posByKey(event.prevChild) == oldPos - 1)) {
+      if (!(event.prevChildKey == null && oldPos == 0 ||
+          _posByKey(event.prevChildKey) == oldPos - 1)) {
         var data = _list[oldPos];
         _list.removeAt(oldPos);
-        _moveTo(id, data, event.prevChild);
+        _moveTo(id, data, event.prevChildKey);
         _onValueRemoved.add(new FirebaseListEvent(
             FirebaseListEvent.VALUE_REMOVED,
             event.snapshot.key,

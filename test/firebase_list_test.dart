@@ -1,16 +1,20 @@
 import 'package:firebase/firebase.dart';
 import 'package:firebase_list/firebase_list.dart';
 import 'package:logging/logging.dart';
-import 'package:logging_handlers/logging_handlers_shared.dart';
 import 'package:test/test.dart';
 
 main() {
   hierarchicalLoggingEnabled = true;
-  Logger.root.onRecord.listen(new LogPrintHandler());
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.time}: ${record.message}');
+  });
   Logger.root.level = Level.INFO;
 
-  Firebase fb;
-  fb = new Firebase('https://test-4892.firebaseio.com');
+  initializeApp(
+    // get from https://console.firebase.google.com/project/test-4892/settings/general
+  );
+
+  DatabaseReference fb = database().ref("/");
 
   group('FirebaseList', () {
     setUp(() async {
@@ -198,7 +202,7 @@ main() {
 
       list.off();
 
-      fb.push(value: {'hello': 'world'});
+      fb.push({'hello': 'world'});
 
       expect(list.length, oldLength);
     });
@@ -221,8 +225,8 @@ main() {
 
       var i = 0;
 
-      var snap = await fb.once('value');
-      snap.val().forEach((key, value) {
+      var event = await fb.once('value');
+      event.snapshot.val().forEach((key, value) {
         expect(list.indexOf(key), i++);
       });
     });
@@ -248,7 +252,12 @@ main() {
       await list.onReady;
 
       expect(list.length, 0);
-      var ref = list.add({'foo': 'bar'});
+      // TODO without loosening this type with the annotation,
+      // it infers it as Map<String, String> and blows up inside the library code
+      Map<String, dynamic> newValue = {'foo': 'bar'};
+      var ref = list.add(newValue);
+      // TODO originally was this
+      // var ref = list.add({ 'foo': 'bar' });
       expect(list.indexOf(ref.key), 0);
     });
 
@@ -267,7 +276,12 @@ main() {
       await list.onReady;
 
       expect(list.length, 0);
-      var id = list.add({'foo': 'bar'}).key;
+      // TODO without loosening this type with the annotation,
+      // it infers it as Map<String, String> and blows up inside the library code
+      Map<String, dynamic> newValue = {'foo': 'bar'};
+      var id = list.add(newValue).key;
+      // TODO originally was this
+      // var ref = list.add({ 'foo': 'bar' });
 
       expect(list[0], equals({r'$id': id, 'foo': 'bar'}));
     });
@@ -284,7 +298,12 @@ main() {
         flag = true;
       });
 
-      list.add({'foo': 'bar'});
+      // TODO without loosening this type with the annotation,
+      // it infers it as Map<String, String> and blows up inside the library code
+      Map<String, dynamic> newValue = {'foo': 'bar'};
+      // TODO originally was this
+      // list.add({'foo': 'bar'});
+      list.add(newValue);
       expect(flag, true);
 
       s.cancel();
@@ -312,11 +331,11 @@ main() {
       var list = new FirebaseList(fb);
       await list.onReady;
 
-      var dat = (await fb.child('a').once('value')).val();
+      var data = (await fb.child('a').once('value')).snapshot.val();
 
-      dat['test'] = true;
+      data['test'] = true;
 
-      list.set(0, dat);
+      list.set(0, data);
 
       expect(list[0]['test'], true);
     });
@@ -328,7 +347,12 @@ main() {
       // TODO is this the same as the js side?
       var listCopy = list.list;
 
-      list.set(0, {'test': 'hello'});
+      // TODO without loosening this type with the annotation,
+      // it infers it as Map<String, String> and blows up inside the library code
+      Map<String, dynamic> newValue = {'test': 'hello'};
+      list.set(0, newValue);
+      // TODO originally was this
+      // list.set(0, {'test': 'hello'});
 
       expect(list.length, greaterThan(0));
       for (int i = 0; i < list.length; i++) {
@@ -488,9 +512,9 @@ main() {
       var list = new FirebaseList(fb);
       await list.onReady;
 
-      var snap = await fb.once('value');
+      var event = await fb.once('value');
 
-      List keys = snap.val().keys.toList();
+      List keys = event.snapshot.val().keys.toList();
       keys.add(keys.removeAt(0));
 
       list.move(0, 100);
@@ -504,8 +528,8 @@ main() {
       var list = new FirebaseList(fb);
       await list.onReady;
 
-      var snap = await fb.once('value');
-      var keys = snap.val().keys.toList();
+      var event = await fb.once('value');
+      var keys = event.snapshot.val().keys.toList();
 
       list.move(4, 100);
 
@@ -526,10 +550,19 @@ main() {
 
       expect(list.length, 0);
 
-      list.add({'foo': 'zero'});
-      list.add({'foo': 'two'});
+      // TODO without loosening this type with the annotation,
+      // it infers it as Map<String, String> and blows up inside the library code
+      Map<String, dynamic> zeroValue = {'foo': 'zero'};
+      Map<String, dynamic> twoValue = {'foo': 'two'};
+      list.add(zeroValue);
+      list.add(twoValue);
+      // TODO originally was this
+      // list.add({'foo': 'zero'});
+      // list.add({'foo': 'two'});
 
-      var ref = list.insert(1, {'foo': 'one'});
+      Map<String, dynamic> oneValue = {'foo': 'one'};
+      var ref = list.insert(1, oneValue);
+      // var ref = list.insert(1, {'foo': 'one'});
 
       expect(list.indexOf(ref.key), 1);
     });
@@ -553,10 +586,19 @@ main() {
       await list.onReady;
 
       expect(list.length, 0);
-      list.add({'foo': 'zero'});
-      list.add({'foo': 'two'});
+      // TODO without loosening this type with the annotation,
+      // it infers it as Map<String, String> and blows up inside the library code
+      Map<String, dynamic> zeroValue = {'foo': 'zero'};
+      Map<String, dynamic> twoValue = {'foo': 'two'};
+      list.add(zeroValue);
+      list.add(twoValue);
+      // TODO originally was this
+      // list.add({'foo': 'zero'});
+      // list.add({'foo': 'two'});
 
-      var id = list.insert(1, {'foo': 'one'}).key;
+      Map<String, dynamic> oneValue = {'foo': 'one'};
+      var id = list.insert(1, oneValue).key;
+      // var id = list.insert(1, {'foo': 'one'}).key;
 
       expect(list[1], equals({r'$id': id, 'foo': 'one'}));
     });
@@ -591,9 +633,9 @@ main() {
       // force priority reset
       list.insert(1, 'one', true);
 
-      fb.once('value').then((snap) {
+      fb.once('value').then((event) {
         int index = 0;
-        snap.forEach((childSnap) {
+        event.snapshot.forEach((childSnap) {
           expect(childSnap.getPriority(), index++);
         });
       });
