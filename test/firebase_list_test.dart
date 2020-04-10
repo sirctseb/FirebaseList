@@ -252,12 +252,7 @@ main() {
       await list.onReady;
 
       expect(list.length, 0);
-      // TODO without loosening this type with the annotation,
-      // it infers it as Map<String, String> and blows up inside the library code
-      Map<String, dynamic> newValue = {'foo': 'bar'};
-      var ref = list.add(newValue);
-      // TODO originally was this
-      // var ref = list.add({ 'foo': 'bar' });
+      var ref = list.add({ 'foo': 'bar' });
       expect(list.indexOf(ref.key), 0);
     });
 
@@ -276,12 +271,7 @@ main() {
       await list.onReady;
 
       expect(list.length, 0);
-      // TODO without loosening this type with the annotation,
-      // it infers it as Map<String, String> and blows up inside the library code
-      Map<String, dynamic> newValue = {'foo': 'bar'};
-      var id = list.add(newValue).key;
-      // TODO originally was this
-      // var ref = list.add({ 'foo': 'bar' });
+      var id = list.add({'foo': 'bar'}).key;
 
       expect(list[0], equals({r'$id': id, 'foo': 'bar'}));
     });
@@ -298,12 +288,7 @@ main() {
         flag = true;
       });
 
-      // TODO without loosening this type with the annotation,
-      // it infers it as Map<String, String> and blows up inside the library code
-      Map<String, dynamic> newValue = {'foo': 'bar'};
-      // TODO originally was this
-      // list.add({'foo': 'bar'});
-      list.add(newValue);
+      list.add({'foo': 'bar'});
       expect(flag, true);
 
       s.cancel();
@@ -347,12 +332,7 @@ main() {
       // TODO is this the same as the js side?
       var listCopy = list.list;
 
-      // TODO without loosening this type with the annotation,
-      // it infers it as Map<String, String> and blows up inside the library code
-      Map<String, dynamic> newValue = {'test': 'hello'};
-      list.set(0, newValue);
-      // TODO originally was this
-      // list.set(0, {'test': 'hello'});
+      list.set(0, {'test': 'hello'});
 
       expect(list.length, greaterThan(0));
       for (int i = 0; i < list.length; i++) {
@@ -550,19 +530,10 @@ main() {
 
       expect(list.length, 0);
 
-      // TODO without loosening this type with the annotation,
-      // it infers it as Map<String, String> and blows up inside the library code
-      Map<String, dynamic> zeroValue = {'foo': 'zero'};
-      Map<String, dynamic> twoValue = {'foo': 'two'};
-      list.add(zeroValue);
-      list.add(twoValue);
-      // TODO originally was this
-      // list.add({'foo': 'zero'});
-      // list.add({'foo': 'two'});
+      list.add({'foo': 'zero'});
+      list.add({'foo': 'two'});
 
-      Map<String, dynamic> oneValue = {'foo': 'one'};
-      var ref = list.insert(1, oneValue);
-      // var ref = list.insert(1, {'foo': 'one'});
+      var ref = list.insert(1, {'foo': 'one'});
 
       expect(list.indexOf(ref.key), 1);
     });
@@ -586,19 +557,10 @@ main() {
       await list.onReady;
 
       expect(list.length, 0);
-      // TODO without loosening this type with the annotation,
-      // it infers it as Map<String, String> and blows up inside the library code
-      Map<String, dynamic> zeroValue = {'foo': 'zero'};
-      Map<String, dynamic> twoValue = {'foo': 'two'};
-      list.add(zeroValue);
-      list.add(twoValue);
-      // TODO originally was this
-      // list.add({'foo': 'zero'});
-      // list.add({'foo': 'two'});
+      list.add({'foo': 'zero'});
+      list.add({'foo': 'two'});
 
-      Map<String, dynamic> oneValue = {'foo': 'one'};
-      var id = list.insert(1, oneValue).key;
-      // var id = list.insert(1, {'foo': 'one'}).key;
+      var id = list.insert(1, {'foo': 'one'}).key;
 
       expect(list[1], equals({r'$id': id, 'foo': 'one'}));
     });

@@ -96,7 +96,8 @@ class FirebaseList {
   /// `list.firebase.update(list.getAddUpdate(data))` is equivalent to
   /// `list.add(data)`
   Map getAddUpdate(dynamic data) {
-    var _data = _parseForUpdate(data);
+    // TODO we have to allocate a new map just to mollify the type inference?
+    var _data = new Map<String, dynamic>.from(_parseForUpdate(data));
     var ref = firebase.push();
     var priority = 0;
     if (_list.length != 0) {
@@ -118,7 +119,7 @@ class FirebaseList {
         throw new Exception('No child at $key');
       } else {
         var priority = _snaps[key].getPriority();
-        result[key] = _parseForUpdate(newValue);
+        result[key] = new Map<String, dynamic>.from(_parseForUpdate(newValue));
         result[key]['.priority'] = priority;
         return result;
       }
@@ -270,7 +271,7 @@ class FirebaseList {
 
     var ref = firebase.push();
     _lastInsertedRef = ref;
-    var value = _parseForUpdate(newValue);
+    var value = new Map<String, dynamic>.from(_parseForUpdate(newValue));
 
     if (index == 0) {
       var priority = _snaps[_list[0][r'$id']].getPriority();
