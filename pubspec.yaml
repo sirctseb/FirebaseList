@@ -1,5 +1,5 @@
 name: firebase_list
-version: 1.0.0
+version: 1.0.1
 author: Christopher Best <bestchris@gmail.com>
 description: Implementation of a list synced to a firebase location
 homepage: https://github.com/sirctseb/FirebaseList
